@@ -45,7 +45,29 @@ class ArqueoController extends BaseController
      */
     public function store(Request $request)
     {
-        //
+        $caja = $request->input("caja");
+      
+
+        $validator = Validator::make($request->all(), [
+            'caja'  => 'required',
+            
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendResponse(false, 'Error de validacion', $validator->errors(), 400);
+        }
+
+        $arqueo = new Arqueo();
+        $arqueo->caja = $caja;
+        $arqueo->ventaTotal = 0;
+        $arqueo->compraTotal = 0;
+        $arqueo->cerrado = 'N';
+
+        if ($arqueo->save()) {
+            return $this->sendResponse(true, 'Caja registrado', $arqueo, 201);
+        }
+        
+        return $this->sendResponse(false, 'Caja no registrado', null, 400);
     }
 
     /**
@@ -79,7 +101,30 @@ class ArqueoController extends BaseController
      */
     public function update(Request $request, $id)
     {
-        //
+    
+        $caja = $request->input("caja");
+
+        $validator = Validator::make($request->all(), [
+            'caja'  => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendResponse(false, 'Error de validacion', $validator->errors(), 400);
+        }
+
+        $arqueo = Arqueo::find($id);
+        if ($arqueo) {
+            $arqueo->caja = $caja;
+            if ($arqueo->save()) {
+                return $this->sendResponse(true, 'Caja actualizado', $arqueo, 200);
+            }
+            
+            return $this->sendResponse(false, 'Caja no actualizado', null, 400);
+        }
+        
+        return $this->sendResponse(false, 'No se encontro la Caja', null, 404);
+
+
     }
 
     /**
@@ -90,6 +135,19 @@ class ArqueoController extends BaseController
      */
     public function destroy($id)
     {
-        //
+        $arqueo = Arqueo::find($id);
+
+        if ($arqueo) {
+            $arqueo->cerrado = ($arqueo->cerrado == 'N') ? 'S' : 'N';
+            
+            if ($arqueo->update()) {
+                return $this->sendResponse(true, 'Cliente eliminado', $arqueo, 200);
+            }
+            
+            return $this->sendResponse(false, 'Cliente Eliminado', $arqueo, 400);
+        }
+        return $this->sendResponse(true, 'No se encontro el cliente', $arqueo, 404);
+
     }
+
 }
